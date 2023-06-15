@@ -1,21 +1,21 @@
 {
-    "name": "orhanerday/open-ai",
+    "name": "swoole-inc/open-ai",
     "description": "OpenAI GPT-3 Api Client in PHP",
     "keywords": [
-        "orhanerday",
+        "swoole",
         "open-ai"
     ],
-    "homepage": "https://github.com/orhanerday/open-ai",
+    "homepage": "https://github.com/swoole-inc/open-ai",
     "license": "MIT",
     "authors": [
         {
-            "name": "Orhan Erday",
-            "email": "orhanerday@gmail.com",
+            "name": "识沃科技",
+            "email": "service@swoole.com.com",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-curl": "*",
         "ext-json": "*"
     },
@@ -26,12 +26,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Orhanerday\\OpenAi\\": "src"
+            "Swoole\\OpenAi\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Orhanerday\\OpenAi\\Tests\\": "tests"
+            "Swoole\\OpenAi\\Tests\\": "tests"
         }
     },
     "scripts": {

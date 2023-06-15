@@ -1,6 +1,6 @@
 <?php
 
-namespace Orhanerday\OpenAi;
+namespace Swoole\OpenAi;
 
 class Url
 {
