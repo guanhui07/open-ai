@@ -1,6 +1,6 @@
 {
     "name": "swoole-inc/open-ai",
-    "description": "OpenAI GPT-3 Api Client in PHP",
+    "description": "OpenAI API Client in PHP",
     "keywords": [
         "swoole",
         "open-ai"
@@ -10,7 +10,7 @@
     "authors": [
         {
             "name": "识沃科技",
-            "email": "service@swoole.com.com",
+            "email": "service@swoole.com",
             "role": "Developer"
         }
     ],
