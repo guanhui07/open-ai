@@ -4,9 +4,8 @@ namespace Swoole\OpenAi;
 
 class Url
 {
-    public const ORIGIN = 'https://api.openai.com';
     public const API_VERSION = 'v1';
-    public const OPEN_AI_URL = self::ORIGIN . "/" . self::API_VERSION;
+    public const OPEN_AI_URL = "/" . self::API_VERSION;
 
     /**
      * @deprecated
