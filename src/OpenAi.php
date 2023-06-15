@@ -18,6 +18,7 @@ class OpenAi
     private array $curlInfo = [];
     private string $error = '';
     private int $errno = 0;
+    private int $httpVersion = CURL_HTTP_VERSION_1_1;
 
     public function __construct($OPENAI_API_KEY)
     {
@@ -486,6 +487,22 @@ class OpenAi
             foreach ($header as $key => $value) {
                 $this->headers[$key] = $value;
             }
+        }
+    }
+
+    /**
+     * @param int $version
+     */
+    public function setHttpVersion(int $version)
+    {
+        switch ($version) {
+            case 2:
+                $this->httpVersion = CURL_HTTP_VERSION_2;
+                break;
+            case 1:
+            default:
+                $this->httpVersion = CURL_HTTP_VERSION_1_1;
+                break;
         }
     }
 
