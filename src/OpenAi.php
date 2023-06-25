@@ -509,7 +509,24 @@ class OpenAi
         }
 
         if (array_key_exists('stream', $opts) && $opts['stream']) {
-            $curl_info[CURLOPT_WRITEFUNCTION] = $this->stream_method;
+            /**
+             * @var $stream_method callable
+             */
+            $stream_method = $this->stream_method;
+            $curl_info[CURLOPT_WRITEFUNCTION] = function ($curl, $data) use ($stream_method) {
+                $list = explode("\n\n", trim($data));
+                foreach ($list as $msg) {
+                    if (!str_starts_with($msg, 'data: ')) {
+                        $stream_method($curl, $msg);
+                        break;
+                    }
+                    $clean = substr($msg, strlen("data: "));
+                    if ($stream_method($curl, $clean) === false) {
+                        return 0;
+                    }
+                }
+                return strlen($data);
+            };
         }
 
         $curl = curl_init();
