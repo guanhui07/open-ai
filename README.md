@@ -3,12 +3,18 @@
 为何 `fork` 此库而不是向原项目发起 `PR` ，主要是是作者的响应时间太长，一个非常简单的 `PR` 经常 `1-2` 周的时间没有任何回复。
 我们需要快速验证迭代，后续会抽时间提交给 `orhanerday/open-ai`
 
+## 改进
 对 `orhanerday/open-ai` 库做了一些改进，包括如下内容：
 
 1. 支持了获取 `curl` 底层错误码，在出现网络底层的问题后可以根据错误信息排查问题
 2. 支持设置 `HTTP` 版本，使用方法 `$openai->setHttpVersion(2)` ，通过设置 `HTTP2` 协议可以绕过 Nginx 的 `proxy cache`
 3. 改进了 `setBaseUrl()` 方法，原库是硬编码写死了 `api.openai.com`，发送请求前通过字符串替换设置 `BaseUrl`，不是很优雅
 4. 改进了 `chat stream` 的实现，原库直接使用了 `WRITE_FUNCTION`，应用层需要分割 `Chunks`并手工解析 `Event-Stream` 消息
+
+## 使用
+```shell
+composer require swoole-inc/open-ai
+```
 
 ## 实例
 
