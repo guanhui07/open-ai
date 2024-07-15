@@ -1,127 +1,124 @@
 <?php
 
-namespace Swoole\OpenAi;
+namespace SwooleAi\OpenAi;
 
 use Exception;
+use RuntimeException;
 
-class OpenAi
+class OpenAi extends Client
 {
-    private string $engine = "davinci";
     private string $model = "text-davinci-002";
     private string $chatModel = "gpt-3.5-turbo";
-    private array $headers;
-    private array $contentTypes;
-    private int $timeout = 0;
-    private object $stream_method;
-    private string $baseUrl = 'https://api.openai.com';
-    private string $proxy = "";
-    private array $curlInfo = [];
-    private string $error = '';
-    private int $errno = 0;
-    private int $httpVersion = CURL_HTTP_VERSION_1_1;
+    private string $apiType = 'openai';
+    private string $apiVersion = 'v1';
+    private string $apiKey;
+    private array $apiParams = [];
+    private const MAX_AUDIO_SPEED = 4;
+    private const MIN_AUDIO_SPEED = 0.25;
+    public const MSG_DONE = '[DONE]';
 
     public function __construct($OPENAI_API_KEY)
     {
-        $this->contentTypes = [
-            "application/json" => "Content-Type: application/json",
-            "multipart/form-data" => "Content-Type: multipart/form-data",
-        ];
-
-        $this->headers = [
-            $this->contentTypes["application/json"],
-            "Authorization: Bearer $OPENAI_API_KEY",
-        ];
+        parent::__construct('https://api.openai.com');
+        if (empty($OPENAI_API_KEY)) {
+            throw new RuntimeException('OPENAI_API_KEY must be not empty');
+        }
+        $this->setApiKey($OPENAI_API_KEY);
     }
 
-    /**
-     * @return array
-     * Remove this method from your code before deploying
-     */
-    public function getCURLInfo()
+    protected function setApiKey(string $api_key): void
     {
-        return $this->curlInfo;
+        $this->apiKey = $api_key;
+    }
+
+    public function setApiVersion(string $version): void
+    {
+        $this->apiVersion = $version;
+    }
+
+    public function setApiType(string $type, array $params = []): void
+    {
+        $this->apiType = $type;
+        $this->apiParams = $params;
+    }
+
+    protected function sendRequest(string $url, string $method, array $opts = []): bool|string
+    {
+        if (array_key_exists('file', $opts) || array_key_exists('image', $opts)) {
+            $this->setContentType(self::CONTENT_TYPE_FORM_DATA);
+            $post_fields = $opts;
+        } else {
+            $this->setContentType(self::CONTENT_TYPE_JSON);
+            $post_fields = json_encode($opts);
+        }
+        if ($this->apiType === 'azure') {
+            $this->withHeader('api-key: ' . $this->apiKey);
+        } else {
+            $this->withHeader("Authorization: Bearer {$this->apiKey}");
+            if ($this->apiType === 'Cloudflare-AI-Gateway') {
+                $url = $this->apiParams['base-url'] . '/' . substr($url, strlen($this->baseUrl . '/v1/'));
+            }
+        }
+        $eventStream = array_key_exists('stream', $opts) && $opts['stream'];
+        return $this->request($url, $method, $post_fields, $eventStream);
+    }
+
+    protected function getApiUrl(string $api): string
+    {
+        $parts = [
+            rtrim($this->baseUrl, '/'),
+            rtrim($this->apiVersion, '/'),
+            ltrim($api, '/'),
+        ];
+        return implode('/', $parts);
     }
 
     /**
      * @return bool|string
      */
-    public function listModels()
+    public function listModels(): bool|string
     {
-        $url = $this->baseUrl . Url::fineTuneModel();
-
-        return $this->sendRequest($url, 'GET');
+        return $this->sendRequest($this->getApiUrl('models'), 'GET');
     }
 
     /**
      * @param $model
      * @return bool|string
      */
-    public function retrieveModel($model)
+    public function retrieveModel($model): bool|string
     {
-        $model = "/$model";
-        $url = $this->baseUrl . Url::fineTuneModel() . $model;
-
-        return $this->sendRequest($url, 'GET');
+        return $this->sendRequest($this->getApiUrl('models/' . $model), 'GET');
     }
 
     /**
-     * @param $opts
-     * @return bool|string
-     * @deprecated
-     */
-    public function complete($opts)
-    {
-        $engine = $opts['engine'] ?? $this->engine;
-        $url = $this->baseUrl . Url::completionURL($engine);
-        unset($opts['engine']);
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param        $opts
-     * @param null $stream
+     * @param array $opts
+     * @param callable|null $stream
      * @return bool|string
      * @throws Exception
      */
-    public function completion($opts, $stream = null)
+    public function completion(array $opts, ?callable $stream = null): bool|string
     {
-        if ($stream != null && array_key_exists('stream', $opts)) {
-            if (! $opts['stream']) {
+        if ($stream != null and array_key_exists('stream', $opts)) {
+            if (!$opts['stream']) {
                 throw new Exception(
                     'Please provide a stream function. Check https://github.com/orhanerday/open-ai#stream-example for an example.'
                 );
             }
-
-            $this->stream_method = $stream;
+            $this->setStreamCallback($stream);
         }
 
         $opts['model'] = $opts['model'] ?? $this->model;
-        $url = $this->baseUrl . Url::completionsURL();
 
-        return $this->sendRequest($url, 'POST', $opts);
+        return $this->sendRequest($this->getApiUrl('completions'), 'POST', $opts);
     }
 
     /**
      * @param $opts
      * @return bool|string
      */
-    public function createEdit($opts)
+    public function image($opts): bool|string
     {
-        $url = $this->baseUrl . Url::editsUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     */
-    public function image($opts)
-    {
-        $url = $this->baseUrl . Url::imageUrl() . "/generations";
-
-        return $this->sendRequest($url, 'POST', $opts);
+        return $this->sendRequest($this->getApiUrl('images/generations'), 'POST', $opts);
     }
 
     /**
@@ -130,9 +127,7 @@ class OpenAi
      */
     public function imageEdit($opts)
     {
-        $url = $this->baseUrl . Url::imageUrl() . "/edits";
-
-        return $this->sendRequest($url, 'POST', $opts);
+        return $this->sendRequest($this->getApiUrl('images/edits'), 'POST', $opts);
     }
 
     /**
@@ -141,80 +136,35 @@ class OpenAi
      */
     public function createImageVariation($opts)
     {
-        $url = $this->baseUrl . Url::imageUrl() . "/variations";
-
-        return $this->sendRequest($url, 'POST', $opts);
+        return $this->sendRequest($this->getApiUrl('images/variations'), 'POST', $opts);
     }
 
     /**
-     * @param $opts
-     * @return bool|string
-     * @deprecated
-     */
-    public function search($opts)
-    {
-        $engine = $opts['engine'] ?? $this->engine;
-        $url = $this->baseUrl . Url::searchURL($engine);
-        unset($opts['engine']);
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     * @deprecated
-     */
-    public function answer($opts)
-    {
-        $url = $this->baseUrl . Url::answersUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     * @deprecated
-     */
-    public function classification($opts)
-    {
-        $url = $this->baseUrl . Url::classificationsUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     */
-    public function moderation($opts)
-    {
-        $url = $this->baseUrl . Url::moderationUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param        $opts
-     * @param null $stream
+     * @param array $opts
+     * @param callable|null $streamFn
      * @return bool|string
      * @throws Exception
      */
-    public function chat($opts, $stream = null)
+    public function chat(array $opts, callable $streamFn = null)
     {
-        if ($stream != null && array_key_exists('stream', $opts)) {
-            if (! $opts['stream']) {
+        if ($streamFn != null && array_key_exists('stream', $opts)) {
+            if (!$opts['stream']) {
                 throw new Exception(
-                    'Please provide a stream function. Check https://github.com/orhanerday/open-ai#stream-example for an example.'
+                    'Please provide a stream function.'
                 );
             }
-
-            $this->stream_method = $stream;
+            $this->setStreamCallback(function ($curl, $data) use ($streamFn) {
+                return $streamFn($curl, $data === self::MSG_DONE ? $data : json_decode($data, true));
+            });
         }
 
-        $opts['model'] = $opts['model'] ?? $this->chatModel;
-        $url = $this->baseUrl . Url::chatUrl();
+        if ($this->apiType == 'azure') {
+            $url = $this->baseUrl . '/openai/deployments/' . $this->apiParams['deployment-id'] .
+                '/chat/completions?api-version=' . urlencode($this->apiParams['api-version']);
+        } else {
+            $url = $this->getApiUrl('chat/completions');
+            $opts['model'] = $opts['model'] ?? $this->chatModel;
+        }
 
         return $this->sendRequest($url, 'POST', $opts);
     }
@@ -223,11 +173,34 @@ class OpenAi
      * @param $opts
      * @return bool|string
      */
+    public function speech($opts)
+    {
+        $url = $this->getApiUrl('audio/speech');
+        if (isset($opts['speed'])) {
+            if ($opts['speed'] > self::MAX_AUDIO_SPEED && $opts['speed'] < self::MIN_AUDIO_SPEED) {
+                throw new RuntimeException('speed error', -1);
+            }
+        }
+        $res = $this->sendRequest($url, 'POST', $opts);
+        if (str_starts_with($this->curlInfo['content_type'], 'application/json')) {
+            $errorArray = json_decode($res, true);
+            throw new RuntimeException($errorArray['error']['message']);
+        }
+        return $res;
+    }
+
+    /**
+     * @param $opts
+     * @return array
+     */
     public function transcribe($opts)
     {
-        $url = $this->baseUrl . Url::transcriptionsUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
+        $url = $this->getApiUrl('audio/transcriptions');
+        $resp = $this->sendRequest($url, 'POST', $opts);
+        if ($resp and str_starts_with($this->curlInfo['content_type'], 'application/json')) {
+            return json_decode($resp, true);
+        }
+        throw new RuntimeException($resp['error']['message']);
     }
 
     /**
@@ -236,327 +209,78 @@ class OpenAi
      */
     public function translate($opts)
     {
-        $url = $this->baseUrl . Url::translationsUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
+        return $this->sendRequest($this->getApiUrl('audio/translations'), 'POST', $opts);
     }
 
     /**
-     * @param $opts
+     * @param string $file
+     * @param string $purpose
+     * @param string $filename
+     * @param string $mimetype
      * @return bool|string
      */
-    public function uploadFile($opts)
+    public function uploadFile(string $file, string $purpose, string $filename = '', string $mimetype = '')
     {
-        $url = $this->baseUrl . Url::filesUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @return bool|string
-     */
-    public function listFiles()
-    {
-        $url = $this->baseUrl . Url::filesUrl();
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $file_id
-     * @return bool|string
-     */
-    public function retrieveFile($file_id)
-    {
-        $file_id = "/$file_id";
-        $url = $this->baseUrl . Url::filesUrl() . $file_id;
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $file_id
-     * @return bool|string
-     */
-    public function retrieveFileContent($file_id)
-    {
-        $file_id = "/$file_id/content";
-        $url = $this->baseUrl . Url::filesUrl() . $file_id;
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $file_id
-     * @return bool|string
-     */
-    public function deleteFile($file_id)
-    {
-        $file_id = "/$file_id";
-        $url = $this->baseUrl . Url::filesUrl() . $file_id;
-
-        return $this->sendRequest($url, 'DELETE');
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     */
-    public function createFineTune($opts)
-    {
-        $url = $this->baseUrl . Url::fineTuneUrl();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @return bool|string
-     */
-    public function listFineTunes()
-    {
-        $url = $this->baseUrl . Url::fineTuneUrl();
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $fine_tune_id
-     * @return bool|string
-     */
-    public function retrieveFineTune($fine_tune_id)
-    {
-        $fine_tune_id = "/$fine_tune_id";
-        $url = $this->baseUrl . Url::fineTuneUrl() . $fine_tune_id;
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $fine_tune_id
-     * @return bool|string
-     */
-    public function cancelFineTune($fine_tune_id)
-    {
-        $fine_tune_id = "/$fine_tune_id/cancel";
-        $url = $this->baseUrl . Url::fineTuneUrl() . $fine_tune_id;
-
-        return $this->sendRequest($url, 'POST');
-    }
-
-    /**
-     * @param $fine_tune_id
-     * @return bool|string
-     */
-    public function listFineTuneEvents($fine_tune_id)
-    {
-        $fine_tune_id = "/$fine_tune_id/events";
-        $url = $this->baseUrl . Url::fineTuneUrl() . $fine_tune_id;
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $fine_tune_id
-     * @return bool|string
-     */
-    public function deleteFineTune($fine_tune_id)
-    {
-        $fine_tune_id = "/$fine_tune_id";
-        $url = $this->baseUrl . Url::fineTuneModel() . $fine_tune_id;
-
-        return $this->sendRequest($url, 'DELETE');
-    }
-
-    /**
-     * @param
-     * @return bool|string
-     * @deprecated
-     */
-    public function engines()
-    {
-        $url = $this->baseUrl . Url::enginesUrl();
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $engine
-     * @return bool|string
-     * @deprecated
-     */
-    public function engine($engine)
-    {
-        $url = $this->baseUrl . Url::engineUrl($engine);
-
-        return $this->sendRequest($url, 'GET');
-    }
-
-    /**
-     * @param $opts
-     * @return bool|string
-     */
-    public function embeddings($opts)
-    {
-        $url = $this->baseUrl . Url::embeddings();
-
-        return $this->sendRequest($url, 'POST', $opts);
-    }
-
-    /**
-     * @param int $timeout
-     */
-    public function setTimeout(int $timeout)
-    {
-        $this->timeout = $timeout;
-    }
-
-    /**
-     * @param string $proxy
-     */
-    public function setProxy(string $proxy)
-    {
-        if ($proxy && strpos($proxy, '://') === false) {
-            $proxy = 'https://' . $proxy;
-        }
-        $this->proxy = $proxy;
-    }
-
-    /**
-     * @param string $baseUrl
-     * @return void
-     */
-    public function setBaseURL(string $baseUrl)
-    {
-        $this->baseUrl = rtrim($baseUrl, " /\ \t\n\r\0\x0B");
-    }
-
-    /**
-     * @param array $header
-     * @return void
-     */
-    public function setHeader(array $header)
-    {
-        if ($header) {
-            foreach ($header as $key => $value) {
-                $this->headers[$key] = $value;
-            }
-        }
-    }
-
-    /**
-     * @param int $version
-     */
-    public function setHttpVersion(int $version)
-    {
-        switch ($version) {
-            case 2:
-                $this->httpVersion = CURL_HTTP_VERSION_2;
-
-                break;
-            case 1:
-            default:
-                $this->httpVersion = CURL_HTTP_VERSION_1_1;
-
-                break;
-        }
-    }
-
-    /**
-     * @param string $org
-     */
-    public function setORG(string $org)
-    {
-        if ($org != "") {
-            $this->headers[] = "OpenAI-Organization: $org";
-        }
-    }
-
-    /**
-     * @param string $url
-     * @param string $method
-     * @param array $opts
-     * @return bool|string
-     */
-    private function sendRequest(string $url, string $method, array $opts = [])
-    {
-        $post_fields = json_encode($opts);
-
-        if (array_key_exists('file', $opts) || array_key_exists('image', $opts)) {
-            $this->headers[0] = $this->contentTypes["multipart/form-data"];
-            $post_fields = $opts;
-        } else {
-            $this->headers[0] = $this->contentTypes["application/json"];
-        }
-        $curl_info = [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => $this->timeout,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => $this->httpVersion,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => $post_fields,
-            CURLOPT_HTTPHEADER => $this->headers,
+        $filename = empty($filename) ? basename($file) : $filename;
+        $opts = [
+            'file' => new \CURLFile($file, $mimetype, $filename),
+            'purpose' => $purpose,
         ];
-
-        if ($opts == []) {
-            unset($curl_info[CURLOPT_POSTFIELDS]);
-        }
-
-        if (! empty($this->proxy)) {
-            $curl_info[CURLOPT_PROXY] = $this->proxy;
-        }
-
-        if (array_key_exists('stream', $opts) && $opts['stream']) {
-            /**
-             * @var $stream_method callable
-             */
-            $stream_method = $this->stream_method;
-            $curl_info[CURLOPT_WRITEFUNCTION] = function ($curl, $data) use ($stream_method) {
-                $list = explode("\n\n", trim($data));
-                foreach ($list as $msg) {
-                    if (!str_starts_with($msg, 'data: ')) {
-                        $stream_method($curl, $msg);
-                        break;
-                    }
-                    $clean = substr($msg, strlen("data: "));
-                    if ($stream_method($curl, $clean) === false) {
-                        return 0;
-                    }
-                }
-                return strlen($data);
-            };
-        }
-
-        $curl = curl_init();
-
-        curl_setopt_array($curl, $curl_info);
-        $response = curl_exec($curl);
-
-        if (empty($response)) {
-            $this->error = curl_error($curl);
-            $this->errno = curl_errno($curl);
-        } else {
-            $this->error = '';
-            $this->errno = 0;
-        }
-
-        $info = curl_getinfo($curl);
-        $this->curlInfo = $info;
-
-        curl_close($curl);
-
-        return $response;
+        $this->withHeader('Expect:');
+        $this->setDebug(false);
+        return $this->sendRequest($this->getApiUrl('files'), 'POST', $opts);
     }
 
-    public function getError(): string
+    /**
+     * @param string $purpose
+     * @return bool|string
+     */
+    public function listFiles(string $purpose = ''): bool|string
     {
-        return $this->error;
+        $url = $this->getApiUrl('files');
+        if ($purpose) {
+            $url .= "?purpose=$purpose";
+        }
+        return $this->sendRequest($url, 'GET');
     }
 
-    public function getErrno(): int
+    /**
+     * @param $file_id
+     * @return bool|string
+     */
+    public function retrieveFile($file_id): bool|string
     {
-        return $this->errno;
+        $url = $this->getApiUrl("files/$file_id");
+        return $this->sendRequest($url, 'GET');
+    }
+
+    /**
+     * @param $file_id
+     * @return bool|string
+     */
+    public function retrieveFileContent($file_id): bool|string
+    {
+        $url = $this->getApiUrl("files/$file_id/content");
+        return $this->sendRequest($url, 'GET');
+    }
+
+    /**
+     * @param $file_id
+     * @return bool|string
+     */
+    public function deleteFile($file_id): bool|string
+    {
+        $url = $this->getApiUrl("files/$file_id");
+        return $this->sendRequest($url, 'DELETE');
+    }
+
+
+    /**
+     * @param $opts
+     * @return bool|string
+     */
+    public function embeddings($opts): bool|string
+    {
+        return $this->sendRequest($this->getApiUrl('embeddings'), 'POST', $opts);
     }
 }

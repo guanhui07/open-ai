@@ -26,7 +26,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Swoole\\OpenAi\\": "src"
+            "SwooleAi\\OpenAi\\": "src"
         }
     },
     "autoload-dev": {

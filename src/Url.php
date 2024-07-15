@@ -1,6 +1,6 @@
 <?php
 
-namespace Swoole\OpenAi;
+namespace SwooleAi\OpenAi;
 
 class Url
 {

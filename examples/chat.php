@@ -2,10 +2,10 @@
 define('BASE_PATH', dirname(__DIR__));
 require BASE_PATH . '/vendor/autoload.php';
 
-use Swoole\OpenAi\OpenAi;
+use SwooleAi\OpenAi\OpenAi;
 
-$open_ai = new OpenAi('test');
-$open_ai->setBaseURL('127.0.0.1:9203/');
+$open_ai = new OpenAi(getenv('OPENAI_API_KEY'));
+$open_ai->setBaseURL('127.0.0.1:3080/');
 $messages[] = ["role" => "system", "content" => "You are a helpful assistant."];
 $messages[] = ["role" => "user", "content" => "Who won the world series in 2020?"];
 $messages[] = ["role" => "assistant", "content" => "The Los Angeles Dodgers won the World Series in 2020."];
@@ -15,10 +15,7 @@ $complete = $open_ai->chat([
     'messages' => $messages,
     'stream' => true,
 ], function ($curl_info, $data) use (&$txt) {
-    if ($data !== '[DONE]') {
-        $json = json_decode($data, true);
-        $txt .= $json['choices'][0]['delta']['content'];
-    }
+    var_dump($data);
 });
 
 if ($complete) {
