@@ -1,5 +1,5 @@
 {
-    "name": "swoole-inc/open-ai",
+    "name": "guanhui07/open-ai",
     "description": "OpenAI API Client in PHP",
     "keywords": [
         "swoole",
@@ -9,13 +9,13 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "识沃科技",
-            "email": "service@swoole.com",
+            "name": "guanhui07",
+            "email": "guanhui07@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": ">=8.0",
+        "php": ">=7.2",
         "ext-curl": "*",
         "ext-json": "*"
     },
