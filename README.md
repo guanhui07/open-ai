@@ -10,7 +10,9 @@
 2. 支持设置 `HTTP` 版本，使用方法 `$openai->setHttpVersion(2)` ，通过设置 `HTTP2` 协议可以绕过 Nginx 的 `proxy cache`
 3. 改进了 `setBaseUrl()` 方法，原库是硬编码写死了 `api.openai.com`，发送请求前通过字符串替换设置 `BaseUrl`，不是很优雅
 4. 改进了 `chat stream` 的实现，原库直接使用了 `WRITE_FUNCTION`，应用层需要分割 `Chunks`并手工解析 `Event-Stream` 消息
+5. 兼容php7
 
+   
 ## 使用
 ```shell
 composer require guanhui07/open-ai
