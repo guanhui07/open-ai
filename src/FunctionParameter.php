@@ -4,7 +4,7 @@ namespace SwooleAi\OpenAi;
 
 class FunctionParameter
 {
-    public static function create(string $type): FunctionParameter
+    public static function create(string $type)
     {
         return new self($type);
     }
@@ -21,7 +21,7 @@ class FunctionParameter
         return $this->property;
     }
 
-    public function withDescription(string $string): static
+    public function withDescription(string $string)
     {
         $this->property['description'] = $string;
         return $this;
