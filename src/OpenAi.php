@@ -42,7 +42,7 @@ class OpenAi extends Client
         $this->apiParams = $params;
     }
 
-    protected function sendRequest(string $url, string $method, array $opts = []): bool|string
+    protected function sendRequest(string $url, string $method, array $opts = [])
     {
         if (array_key_exists('file', $opts) || array_key_exists('image', $opts)) {
             $this->setContentType(self::CONTENT_TYPE_FORM_DATA);
@@ -76,7 +76,7 @@ class OpenAi extends Client
     /**
      * @return bool|string
      */
-    public function listModels(): bool|string
+    public function listModels()
     {
         return $this->sendRequest($this->getApiUrl('models'), 'GET');
     }
@@ -85,7 +85,7 @@ class OpenAi extends Client
      * @param $model
      * @return bool|string
      */
-    public function retrieveModel($model): bool|string
+    public function retrieveModel($model)
     {
         return $this->sendRequest($this->getApiUrl('models/' . $model), 'GET');
     }
@@ -96,7 +96,7 @@ class OpenAi extends Client
      * @return bool|string
      * @throws Exception
      */
-    public function completion(array $opts, ?callable $stream = null): bool|string
+    public function completion(array $opts, ?callable $stream = null)
     {
         if ($stream != null and array_key_exists('stream', $opts)) {
             if (!$opts['stream']) {
@@ -116,7 +116,7 @@ class OpenAi extends Client
      * @param $opts
      * @return bool|string
      */
-    public function image($opts): bool|string
+    public function image($opts)
     {
         return $this->sendRequest($this->getApiUrl('images/generations'), 'POST', $opts);
     }
@@ -235,7 +235,7 @@ class OpenAi extends Client
      * @param string $purpose
      * @return bool|string
      */
-    public function listFiles(string $purpose = ''): bool|string
+    public function listFiles(string $purpose = '')
     {
         $url = $this->getApiUrl('files');
         if ($purpose) {
@@ -248,7 +248,7 @@ class OpenAi extends Client
      * @param $file_id
      * @return bool|string
      */
-    public function retrieveFile($file_id): bool|string
+    public function retrieveFile($file_id)
     {
         $url = $this->getApiUrl("files/$file_id");
         return $this->sendRequest($url, 'GET');
@@ -258,7 +258,7 @@ class OpenAi extends Client
      * @param $file_id
      * @return bool|string
      */
-    public function retrieveFileContent($file_id): bool|string
+    public function retrieveFileContent($file_id)
     {
         $url = $this->getApiUrl("files/$file_id/content");
         return $this->sendRequest($url, 'GET');
@@ -268,7 +268,7 @@ class OpenAi extends Client
      * @param $file_id
      * @return bool|string
      */
-    public function deleteFile($file_id): bool|string
+    public function deleteFile($file_id)
     {
         $url = $this->getApiUrl("files/$file_id");
         return $this->sendRequest($url, 'DELETE');
@@ -279,7 +279,7 @@ class OpenAi extends Client
      * @param $opts
      * @return bool|string
      */
-    public function embeddings($opts): bool|string
+    public function embeddings($opts)
     {
         return $this->sendRequest($this->getApiUrl('embeddings'), 'POST', $opts);
     }
