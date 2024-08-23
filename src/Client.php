@@ -64,7 +64,7 @@ abstract class Client
         }
     }
 
-    protected function post(string $url, mixed $data)
+    protected function post(string $url,  $data)
     {
         return $this->request($url, 'POST', $data);
     }
@@ -147,7 +147,7 @@ abstract class Client
         }
     }
 
-    protected function dumpVars(string $name, mixed $value)
+    protected function dumpVars(string $name,  $value)
     {
         echo "[$name]\n" . str_repeat('=', 80) . "\n";
         var_dump($value);
@@ -175,7 +175,7 @@ abstract class Client
      * @param bool $stream
      * @return bool|string
      */
-    protected function request(string $url, string $method, mixed $post_fields = null, bool $stream = false)
+    protected function request(string $url, string $method,  $post_fields = null, bool $stream = false)
     {
         $curl_opts = [
             CURLOPT_URL => $url,
