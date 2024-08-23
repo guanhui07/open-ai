@@ -134,18 +134,16 @@ abstract class Client
     /**
      * @param int $version
      */
-    public function setHttpVersion(int $version): void
+    public function setHttpVersion(int $version)
     {
         // $this->httpVersion = match ($version) {
         //     2 => CURL_HTTP_VERSION_2,
         //     default => CURL_HTTP_VERSION_1_1,
         // };
-        if (isset($version)) {
-            if ($version === 2) {
-                $this->httpVersion = CURL_HTTP_VERSION_2;
-            } else {
-                $this->httpVersion = CURL_HTTP_VERSION_1_1;
-            }
+        if ($version === 2) {
+            $this->httpVersion = CURL_HTTP_VERSION_2;
+        } else {
+            $this->httpVersion = CURL_HTTP_VERSION_1_1;
         }
     }
 
