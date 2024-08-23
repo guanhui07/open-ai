@@ -8,7 +8,7 @@ abstract class Client
     protected  $responseHeaders = [];
     protected  $timeout = 0;
     private  $streamCallback;
-    protected string $proxy = "";
+    protected  $proxy = "";
     protected  $curlInfo = [];
     protected  $error = '';
     protected  $errno = 0;
