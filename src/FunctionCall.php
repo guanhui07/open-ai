@@ -4,14 +4,14 @@ namespace SwooleAi\OpenAi;
 
 class FunctionCall
 {
-    protected array $functions = [];
+    protected  $functions = [];
 
-    public static function create(): FunctionCall
+    public static function create()
     {
         return new self;
     }
 
-    public function add(FunctionDef $def): static
+    public function add(FunctionDef $def)
     {
         $this->functions[] = ['type' => 'function', 'function' => $def->toArray()];
         return $this;
