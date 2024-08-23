@@ -12,7 +12,7 @@ class OpenAi extends Client
     private  $apiType = 'openai';
     private  $apiVersion = 'v1';
     private  $apiKey;
-    private array $apiParams = [];
+    private  $apiParams = [];
     private const MAX_AUDIO_SPEED = 4;
     private const MIN_AUDIO_SPEED = 0.25;
     public const MSG_DONE = '[DONE]';
