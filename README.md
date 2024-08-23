@@ -3,6 +3,10 @@
 为何 `fork` 此库而不是向原项目发起 `PR` ，主要是是作者的响应时间太长，一个非常简单的 `PR` 经常 `1-2` 周的时间没有任何回复。
 我们需要快速验证迭代，后续会抽时间提交给 `orhanerday/open-ai`
 
+https://github.com/orhanerday/open-ai?tab=readme-ov-file#chat-as-known-as-chatgpt-api
+
+
+
 ## 改进
 对 `orhanerday/open-ai` 库做了一些改进，包括如下内容：
 
