@@ -4,7 +4,7 @@ namespace SwooleAi\OpenAi;
 
 class FunctionDef
 {
-    protected array $function = [
+    protected  $function = [
         'name' => '',
         'description' => '',
         'parameters' => [
@@ -14,7 +14,7 @@ class FunctionDef
         ],
     ];
 
-    public static function create(string $name): FunctionDef
+    public static function create(string $name)
     {
         return new self($name);
     }
@@ -24,19 +24,19 @@ class FunctionDef
         $this->function['name'] = $name;
     }
 
-    public function withDescription(string $description): static
+    public function withDescription(string $description)
     {
         $this->function['description'] = $description;
         return $this;
     }
 
-    public function withParameter(string $name, FunctionParameter $parameter): static
+    public function withParameter(string $name, FunctionParameter $parameter)
     {
         $this->function['parameters']['properties'][$name] = $parameter->toArray();
         return $this;
     }
 
-    public function withRequired(): static
+    public function withRequired()
     {
         $this->function['parameters']['required'] = func_get_args();
         return $this;
