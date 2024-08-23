@@ -13,7 +13,7 @@
 
 ## 使用
 ```shell
-composer require swoole-inc/open-ai
+composer require guanhui07/open-ai
 ```
 
 ## 实例
