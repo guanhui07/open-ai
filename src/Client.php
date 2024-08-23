@@ -4,8 +4,8 @@ namespace SwooleAi\OpenAi;
 
 abstract class Client
 {
-    protected array $headers = [];
-    protected array $responseHeaders = [];
+    protected  $headers = [];
+    protected  $responseHeaders = [];
     protected  $timeout = 0;
     private  $streamCallback;
     protected string $proxy = "";
