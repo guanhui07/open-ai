@@ -6,21 +6,21 @@ abstract class Client
 {
     protected array $headers = [];
     protected array $responseHeaders = [];
-    protected int $timeout = 0;
-    private object $streamCallback;
+    protected  $timeout = 0;
+    private  $streamCallback;
     protected string $proxy = "";
-    protected array $curlInfo = [];
-    protected string $error = '';
-    protected int $errno = 0;
-    protected int $httpVersion = CURL_HTTP_VERSION_1_1;
-    protected string $baseUrl;
-    protected bool $debug = false;
-    protected string $chunkBuffer = '';
+    protected  $curlInfo = [];
+    protected  $error = '';
+    protected  $errno = 0;
+    protected  $httpVersion = CURL_HTTP_VERSION_1_1;
+    protected  $baseUrl;
+    protected  $debug = false;
+    protected  $chunkBuffer = '';
 
     public const CONTENT_TYPE_JSON = 1;
     public const CONTENT_TYPE_FORM_DATA = 2;
     public const CONTENT_TYPE_FORM_URLENCODED = 3;
-    private ?object $streamParser = null;
+    private  $streamParser = null;
 
     public function __construct(string $baseUrl)
     {
@@ -114,7 +114,7 @@ abstract class Client
         }
     }
 
-    public function withHeader(string $header): static
+    public function withHeader(string $header)
     {
         $this->headers[] = $header;
         return $this;
@@ -170,7 +170,7 @@ abstract class Client
      * @param bool $stream
      * @return bool|string
      */
-    protected function request(string $url, string $method, mixed $post_fields = null, bool $stream = false): bool|string
+    protected function request(string $url, string $method, mixed $post_fields = null, bool $stream = false)
     {
         $curl_opts = [
             CURLOPT_URL => $url,
