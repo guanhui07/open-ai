@@ -136,10 +136,17 @@ abstract class Client
      */
     public function setHttpVersion(int $version): void
     {
-        $this->httpVersion = match ($version) {
-            2 => CURL_HTTP_VERSION_2,
-            default => CURL_HTTP_VERSION_1_1,
-        };
+        // $this->httpVersion = match ($version) {
+        //     2 => CURL_HTTP_VERSION_2,
+        //     default => CURL_HTTP_VERSION_1_1,
+        // };
+        if (isset($version)) {
+            if ($version === 2) {
+                $this->httpVersion = CURL_HTTP_VERSION_2;
+            } else {
+                $this->httpVersion = CURL_HTTP_VERSION_1_1;
+            }
+        }
     }
 
     protected function dumpVars(string $name, mixed $value)
