@@ -7,11 +7,11 @@ use RuntimeException;
 
 class OpenAi extends Client
 {
-    private string $model = "text-davinci-002";
-    private string $chatModel = "gpt-3.5-turbo";
-    private string $apiType = 'openai';
-    private string $apiVersion = 'v1';
-    private string $apiKey;
+    private  $model = "text-davinci-002";
+    private  $chatModel = "gpt-3.5-turbo";
+    private  $apiType = 'openai';
+    private  $apiVersion = 'v1';
+    private  $apiKey;
     private array $apiParams = [];
     private const MAX_AUDIO_SPEED = 4;
     private const MIN_AUDIO_SPEED = 0.25;
