@@ -47,7 +47,7 @@ $complete = $open_ai->chat([
         $txt .= $json['choices'][0]['delta']['content'];
     }
 });
-
+var_dump($complete);
 if ($complete) {
     var_dump($txt);
 } else {
