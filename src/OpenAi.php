@@ -44,6 +44,12 @@ class OpenAi extends Client
 
     protected function sendRequest(string $url, string $method, array $opts = [])
     {
+        if(isset($opts['stream'])) {
+            unset($opts['stream']);
+        }
+        if(isset($opts['raw'])) {
+            unset($opts['raw']);
+        }
         if (array_key_exists('file', $opts) || array_key_exists('image', $opts)) {
             $this->setContentType(self::CONTENT_TYPE_FORM_DATA);
             $post_fields = $opts;
