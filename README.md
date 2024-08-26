@@ -32,15 +32,14 @@ $messages[] = ["role" => "assistant", "content" => "The Los Angeles Dodgers won 
 $messages[] = ["role" => "user", "content" => "Where was it played?"];
 $complete = $open_ai->chat([
     'model' => 'gpt-3.5-turbo',
-    'messages' => $messages,
-    'stream' => true,
-    'raw' => 1,
+    'messages' => $messages
 ], function ($curl_info, $data) use (&$txt) {
     if ($data !== '[DONE]') {
         $json = json_decode($data, true);
         $txt .= $json['choices'][0]['delta']['content'];
     }
 });
+var_dump($complete);
 
 if ($complete) {
     var_dump($txt);
