@@ -31,7 +31,7 @@ require BASE_PATH . '/vendor/autoload.php';
 use SwooleAi\OpenAi\OpenAi;
 
 $open_ai = new OpenAi('test');
-$open_ai->setBaseURL('https://chat.swoole.com/');
+$open_ai->setBaseURL('https://api.openai.com/');
 $messages[] = ["role" => "system", "content" => "You are a helpful assistant."];
 $messages[] = ["role" => "user", "content" => "Who won the world series in 2020?"];
 $messages[] = ["role" => "assistant", "content" => "The Los Angeles Dodgers won the World Series in 2020."];
